@@ -232,6 +232,9 @@
         // if valid, output into the output_elem that was passed into this function.
         if ( loan_info!==0 ) {
 
+            //doing stuff
+            
+
             // replace the placeholders with the response values.
             var output_content = options.response_basic
                 .replace( "%payment_amount%", formatNumber( loan_info.payment_amount_formatted, options ) )
@@ -343,23 +346,26 @@
                     '<thead><tr>'+
                     '<th class="accrue-payment-number">#</th>'+
                     '<th class="accrue-payment-amount">Payment Amt.</th>'+
-                    '<th class="accrue-total-interest">Total Interest</th>'+
+                    '<th class="accrue-total-interest">Payment Interest</th>'+
+                    '<th class="accrue-total-interest">Total Interest Paid</th>'+
                     '<th class="accrue-total-payments">Total Payments</th>'+
                     '<th class="accrue-balance">Balance</th>'+
                     '</tr></thead><tbody>',
-                interest_per_payment = loan_info.payment_amount-(loan_info.original_amount/loan_info.num_payments),
-                amount_from_balance = loan_info.payment_amount-interest_per_payment,
-                counter_interest = 0,
+                interest_per_payment = 0,
+                counter_interest_paid = 0,
                 counter_payment = 0,
                 counter_balance = parseInt(loan_info.original_amount, 10);
 
             // Start appending the table rows to our output variable.
             for ( var i=0; i<loan_info.num_payments; i++) { 
 
+                interest_per_payment = counter_balance*loan_info.monthly_interest_rate;
+                principal_per_payment = loan_info.payment_amount-interest_per_payment;
+
                 // Record the payment in our counter variables.
-                counter_interest = counter_interest+interest_per_payment;
+                counter_interest_paid = counter_interest_paid+interest_per_payment;
                 counter_payment = counter_payment+loan_info.payment_amount;
-                counter_balance = counter_balance-amount_from_balance;
+                counter_balance = counter_balance-principal_per_payment;
 
                 // bold the last row of the table by using <th>s for
                 // the values. 
@@ -373,7 +379,8 @@
                     '<tr>'+
                     '<'+cell_tag+' class="accrue-payment-number">'+(i+1)+'</'+cell_tag+'>'+
                     '<'+cell_tag+' class="accrue-payment-amount">'+formatNumber( loan_info.payment_amount_formatted, options )+'</'+cell_tag+'>'+
-                    '<'+cell_tag+' class="accrue-total-interest">'+formatNumber( counter_interest.toFixed(2), options )+'</'+cell_tag+'>'+
+                    '<'+cell_tag+' class="accrue-payment-interest">'+formatNumber( interest_per_payment.toFixed(2), options )+'</'+cell_tag+'>'+
+                    '<'+cell_tag+' class="accrue-total-interest">'+formatNumber( counter_interest_paid.toFixed(2), options )+'</'+cell_tag+'>'+
                     '<'+cell_tag+' class="accrue-total-payments">'+formatNumber( counter_payment.toFixed(2), options )+'</'+cell_tag+'>'+
                     '<'+cell_tag+' class="accrue-balance">'+formatNumber( counter_balance.toFixed(2), options )+'</'+cell_tag+'>'+
                     '</tr>';
@@ -437,6 +444,7 @@
         if ( amount*rate*term>0 ) {
             // Fill in the output fields, rounding to 2 decimal places
             return {
+                monthly_interest_rate: monthly_interest,
                 original_amount: amount,
                 payment_amount: monthly,
                 payment_amount_formatted: monthly.toFixed(2),
